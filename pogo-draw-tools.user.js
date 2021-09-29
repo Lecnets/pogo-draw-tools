@@ -18,31 +18,31 @@
 
 ;(function () { // eslint-disable-line no-extra-semi
 
-	function wrapper(plugin_info) {
-		'use strict';
+    function wrapper(plugin_info) {
+        'use strict';
 
         // Plugin namespace
         window.plugin.pogoDrawTools = function(){};
 
-		// Leaflet layers
-		let regionLayer;
-		let nearbyLayerGroup;
+        // Leaflet layers
+        let regionLayer;
+        let nearbyLayerGroup;
 
-		const defaultSettings = {
-			colors: {
-				nearbyCircleBorder: {
-					color: '#000000',
-					opacity: 0.6
-				},
-				nearbyCircleFill: {
-					color: '#000000',
-					opacity: 0.4
-				},
+        const defaultSettings = {
+            colors: {
+                nearbyCircleBorder: {
+                    color: '#000000',
+                    opacity: 0.6
+                },
+                nearbyCircleFill: {
+                    color: '#000000',
+                    opacity: 0.4
+                },
                 marker: {
                     color: '#ff4713'
                 }
-			}
-		};
+            }
+        };
         let settings = defaultSettings;
 
         /**
@@ -85,24 +85,24 @@
         }
 
         /**
-		 * Refresh Layer Groups over the map
-		 */
-		function updateMapLayers() {
+         * Refresh Layer Groups over the map
+         */
+        function updateMapLayers() {
             // preconditions
-			if (!map.hasLayer(regionLayer)) {
-				return;
-			}
-			const zoom = map.getZoom();
+            if (!map.hasLayer(regionLayer)) {
+                return;
+            }
+            const zoom = map.getZoom();
 
             // Draw nearby circles on markers
-			if (zoom > 16) {
-				if (!regionLayer.hasLayer(nearbyLayerGroup)) {
-					regionLayer.addLayer(nearbyLayerGroup);
-				}
-				nearbyLayerGroup.bringToBack();
-			} else if (regionLayer.hasLayer(nearbyLayerGroup)) {
-				regionLayer.removeLayer(nearbyLayerGroup);
-			}
+            if (zoom > 16) {
+                if (!regionLayer.hasLayer(nearbyLayerGroup)) {
+                    regionLayer.addLayer(nearbyLayerGroup);
+                }
+                nearbyLayerGroup.bringToBack();
+            } else if (regionLayer.hasLayer(nearbyLayerGroup)) {
+                regionLayer.removeLayer(nearbyLayerGroup);
+            }
         }
 
         /**
@@ -171,7 +171,7 @@
             regionLayer = L.layerGroup();
             window.addLayerGroup('Pogo Draw Tools Layer', regionLayer, true);
             // Used for draw circles on markers created from draw tools
-			nearbyLayerGroup = L.featureGroup();
+            nearbyLayerGroup = L.featureGroup();
 
             map.on('draw:edited draw:editmove draw:editstop', function(e) {
                 refreshNearbyCircle();
@@ -193,35 +193,35 @@
             boot();
         }
 
-		setup.info = plugin_info; //add the script info data to the function as a property
-		// if IITC has already booted, immediately run the 'setup' function
-		if (window.iitcLoaded) {
-			setup();
-		} else {
-			if (!window.bootPlugins) {
-				window.bootPlugins = [];
-			}
-			window.bootPlugins.push(setup);
-		}
-	}
+        setup.info = plugin_info; //add the script info data to the function as a property
+        // if IITC has already booted, immediately run the 'setup' function
+        if (window.iitcLoaded) {
+            setup();
+        } else {
+            if (!window.bootPlugins) {
+                window.bootPlugins = [];
+            }
+            window.bootPlugins.push(setup);
+        }
+    }
 
-	const plugin_info = {};
-	if (typeof GM_info !== 'undefined' && GM_info && GM_info.script) {
-		plugin_info.script = {
-			version: GM_info.script.version,
-			name: GM_info.script.name,
-			description: GM_info.script.description
-		};
-	}
+    const plugin_info = {};
+    if (typeof GM_info !== 'undefined' && GM_info && GM_info.script) {
+        plugin_info.script = {
+            version: GM_info.script.version,
+            name: GM_info.script.name,
+            description: GM_info.script.description
+        };
+    }
 
-	// Greasemonkey. It will be quite hard to debug
-	if (typeof unsafeWindow != 'undefined' || typeof GM_info == 'undefined' || GM_info.scriptHandler != 'Tampermonkey') {
-		// inject code into site context
-		const script = document.createElement('script');
-		script.appendChild(document.createTextNode('(' + wrapper + ')(' + JSON.stringify(plugin_info) + ');'));
-		(document.body || document.head || document.documentElement).appendChild(script);
-	} else {
-		// Tampermonkey, run code directly
-		wrapper(plugin_info);
-	}
+    // Greasemonkey. It will be quite hard to debug
+    if (typeof unsafeWindow != 'undefined' || typeof GM_info == 'undefined' || GM_info.scriptHandler != 'Tampermonkey') {
+        // inject code into site context
+        const script = document.createElement('script');
+        script.appendChild(document.createTextNode('(' + wrapper + ')(' + JSON.stringify(plugin_info) + ');'));
+        (document.body || document.head || document.documentElement).appendChild(script);
+    } else {
+        // Tampermonkey, run code directly
+        wrapper(plugin_info);
+    }
 })();
