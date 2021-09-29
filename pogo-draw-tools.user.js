@@ -1,7 +1,7 @@
 // ==UserScript==
 // @author       Lecnets
 // @name         Pogo Draw Tools Extension
-// @category     Layer
+// @category     Draw
 // @namespace    https://github.com/Lecnets/pogo-draw-tools
 // @downloadURL  https://raw.githubusercontent.com/Lecnets/pogo-draw-tools/master/pogo-draw-tools.user.js
 // @homepageURL  https://github.com/Lecnets/pogo-draw-tools
