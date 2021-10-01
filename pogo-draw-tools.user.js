@@ -156,7 +156,10 @@
                     color: settings.colors.nearbyCircleBorder.color,
                     opacity: settings.colors.nearbyCircleBorder.opacity,
                     fillColor: settings.colors.nearbyCircleFill.color,
-                    fillOpacity: settings.colors.nearbyCircleFill.opacity
+                    fillOpacity: settings.colors.nearbyCircleFill.opacity,
+                    weight: 1,
+                    clickable: false,
+                    interactive: false
                 };
 
                 const center = marker.getLatLng();
