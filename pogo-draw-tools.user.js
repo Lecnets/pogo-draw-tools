@@ -25,6 +25,9 @@
         // ensure plugin framework is there, even if iitc is not yet loaded
         if(typeof window.plugin !== 'function') window.plugin = function() {};
 
+        // Plugin namespace
+        window.plugin.pogoDrawTools = function(){};
+
         // Used for wait default draw tools to be loaded, before run customized codes
         let onDTLoaded = (callback, interval = 250, maxWaitDuration = 10000) => {
             const pluginInterval = setInterval(() => {
@@ -63,6 +66,25 @@
             let settings = defaultSettings;
 
             /**
+             * Change default drawn style
+             */
+            window.plugin.pogoDrawTools.setOptions = function() {
+                window.plugin.drawTools.lineOptions = {
+                    color: 'blue',
+                    weight: 2,
+                    opacity: 0.7,
+                };
+
+                window.plugin.drawTools.polygonOptions = L.extend({}, window.plugin.drawTools.lineOptions, {
+                    fillOpacity: 0.3,
+                });
+
+                window.plugin.drawTools.markerOptions = {
+                    icon: window.plugin.drawTools.currentMarker,
+                };
+            }
+
+            /**
              * Create Default Icon
              */
             L.DivIcon.Wayfarer = L.DivIcon.extend({
@@ -90,7 +112,7 @@
             /**
              * Instantiates a Default Icon
              */
-            L.divIcon.defaultSvg = function (color, options) {
+            L.divIcon.wayfarerSvg = function (color, options) {
                 return new L.DivIcon.Wayfarer(color, options);
             };
 
@@ -98,7 +120,7 @@
              * Override marker icon from Draw Tools
              */
             window.plugin.drawTools.getMarkerIcon = function (color) {
-                return L.divIcon.defaultSvg(color);
+                return L.divIcon.wayfarerSvg(color);
             }
 
             /**
@@ -120,19 +142,6 @@
                 } else if (regionNearbyLayer.hasLayer(nearbyLayerGroup)) {
                     regionNearbyLayer.removeLayer(nearbyLayerGroup);
                 }
-            }
-
-            /**
-             * Used for override default Draw Tools marker icon
-             */
-            window.setMarkerIcon = function(color) {
-                window.plugin.drawTools.currentColor = color;
-                window.plugin.drawTools.currentMarker = window.plugin.drawTools.getMarkerIcon(color);
-                window.plugin.drawTools.markerOptions.icon = window.plugin.drawTools.currentMarker;
-
-                plugin.drawTools.drawControl.setDrawingOptions({
-                    marker:   { icon:         plugin.drawTools.currentMarker },
-                });
             }
 
             /**
@@ -179,10 +188,12 @@
              * Used for rewrite icons from loaded markers by Draw Tools
              */
             function updateLoadedMarkers() {
+                // Reset all loaded markers
+                window.plugin.drawTools.drawnItems.clearLayers();
+                window.plugin.drawTools.load();
+
                 window.plugin.drawTools.drawnItems.eachLayer(function (layer) {
                     if(layer instanceof L.Marker) {
-                        // Change default Draw Tools Icon to default Pogo Draw Tools icon
-                        layer.setIcon(window.plugin.drawTools.currentMarker);
                         // Add nearby circle into loaded markers
                         addNearbyCircle(layer);
                     }
@@ -199,8 +210,8 @@
             }
 
             const boot = function(){
-                window.plugin.drawTools.currentMarker = window.plugin.drawTools.getMarkerIcon(settings.colors.marker.color);
-                window.setMarkerIcon(settings.colors.marker.color);
+                window.plugin.pogoDrawTools.setOptions();
+                window.plugin.drawTools.setDrawColor(settings.colors.marker.color);
 
                 regionNearbyLayer = L.layerGroup();
                 window.addLayerGroup('Drawn 20m Radius', regionNearbyLayer, true);
