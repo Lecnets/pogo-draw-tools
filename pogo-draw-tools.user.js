@@ -15,7 +15,7 @@
 /* eslint-env es6 */
 /* eslint no-var: "error" */
 /* globals L, map */
-/* globals GM_info, $ */
+/* globals GM_info, $, dialog */
 
 ;(function () { // eslint-disable-line no-extra-semi
 
@@ -66,11 +66,52 @@
             let settings = defaultSettings;
 
             /**
+             * Last OSM Update: 2019-01-22
+             */
+            const nestTags = {
+                confirmed: {
+                    leisure: [
+                        'park',
+                        'recreation_ground',
+                        'pitch',
+                        'garden',
+                        'golf_course',
+                        'playground'
+                    ],
+                    landuse: [
+                        'recreation_ground',
+                        'meadow',
+                        'grass',
+                        'greenfield',
+                        'farmyard'
+                    ],
+                    natural: [
+                        'scrub',
+                        'heath',
+                        'grassland'
+                    ]
+                },
+                unconfirmed: {
+                    leisure: [
+                        'nature_reserve'
+                    ],
+                    landuse: [
+                        'farmland',
+                        'orchard',
+                        'vineyard'
+                    ],
+                    natural: [
+                        'plateau',
+                        'moor'
+                    ]
+                }
+            };
+
+            /**
              * Change default drawn style
              */
             window.plugin.pogoDrawTools.setOptions = function() {
                 window.plugin.drawTools.lineOptions = {
-                    color: 'blue',
                     weight: 2,
                     opacity: 0.7,
                 };
@@ -78,10 +119,6 @@
                 window.plugin.drawTools.polygonOptions = L.extend({}, window.plugin.drawTools.lineOptions, {
                     fillOpacity: 0.3,
                 });
-
-                window.plugin.drawTools.markerOptions = {
-                    icon: window.plugin.drawTools.currentMarker,
-                };
             }
 
             /**
@@ -200,11 +237,152 @@
                 });
             }
 
-            const loadStyles = function(){
+            /**
+             * Load Pogo Draw Tools menu options
+             */
+            window.plugin.pogoDrawTools.manualOpt = function(){
+                let mergeStatusCheck = '';
+                if(!window.plugin.drawTools.merge.status){
+                  mergeStatusCheck = 'checked';
+                }
+
+                // Prepare Menu Options
+                const html = '<div class="pogoDrawToolsSetbox">'
+                           + '<a onclick="window.plugin.pogoDrawTools.optImportGJ();return false;" tabindex="0">Import GeoJson Items</a>'
+                           + '<center><label><input type="checkbox" '+mergeStatusCheck+' name="merge" '
+                           + 'onchange="window.plugin.drawTools.merge.toggle();return false;" />Reset draws before import</label></center>'
+                           + '</div>';
+
+                dialog({
+                    html: html,
+                    id: 'plugin-pogoDrawTools-options',
+                    dialogClass: 'ui-dialog-pogoDrawToolsSet',
+                    title: 'Pogo Draw Tools Options'
+                });
+            }
+
+            window.plugin.pogoDrawTools.optAlert = function(message) {
+                $('.ui-dialog-pogoDrawToolsSet .ui-dialog-buttonset').prepend('<p class="pogoDrawTools-alert" style="float:left;margin-top:4px;">'+message+'</p>');
+                $('.pogoDrawTools-alert').delay(2500).fadeOut();
+            }
+
+            /**
+             * Get color based on OSM tags, that defines if a polygon is a nest/EX
+             */
+            function getColorByTag(properties){
+                if(properties.leisure !== undefined && nestTags.confirmed.leisure.includes(properties.leisure) || properties.landuse !== undefined && nestTags.confirmed.landuse.includes(properties.landuse) || properties.natural !== undefined && nestTags.confirmed.natural.includes(properties.natural)) {
+                    // return color blue, if current polygon is confirmed nest
+                    return 'blue';
+                } else if(properties.leisure !== undefined && nestTags.unconfirmed.leisure.includes(properties.leisure) || properties.landuse !== undefined && nestTags.unconfirmed.landuse.includes(properties.landuse) || properties.natural !== undefined && nestTags.unconfirmed.natural.includes(properties.natural)) {
+                    // return color gray, if current polygon is unconfirmed nest
+                    return 'gray';
+                }
+                // return default color
+                return window.plugin.drawTools.currentColor;
+            }
+
+            /**
+             * Generates draw tools data using GeoJson structure
+             */
+            function prepareGeoJsonFile(data){
+                // Used for generate Draw Tools data
+                let drawData = [];
+                // Used later for Polygon and Polyline Geometries
+                let coordinates;
+
+                loopItems:
+                for (let i = 0; i < data.features.length; i++) {
+                    let drawItem = {};
+
+                    switch (data.features[i].geometry.type) {
+                        case 'Point':
+                            drawItem = {
+                                type: 'marker',
+                                latLng: {
+                                    lat: data.features[i].geometry.coordinates[1],
+                                    lng: data.features[i].geometry.coordinates[0]
+                                },
+                                color: settings.colors.marker.color
+                            };
+                            drawData.push(drawItem);
+                            continue loopItems;
+                        case 'Polygon':
+                            coordinates = data.features[i].geometry.coordinates[0];
+                            drawItem.type = 'polygon';
+                            drawItem.color = getColorByTag(data.features[i].properties);
+                            break;
+                        case 'LineString':
+                            coordinates = data.features[i].geometry.coordinates;
+                            drawItem.type = 'polyline';
+                            drawItem.color = window.plugin.drawTools.currentColor;
+                            break;
+                        default:
+                            throw "Invalid geometry type: " + data.features[i].geometry.type;
+                    }
+
+                    drawItem.latLngs = [];
+                    for (let j = 0; j < coordinates.length; j++) {
+                        drawItem.latLngs.push({
+                            lat: coordinates[j][1],
+                            lng: coordinates[j][0]
+                        });
+                    }
+                    drawData.push(drawItem);
+                }
+                return drawData;
+            }
+
+            /**
+             * Load GeoJson data into map
+             */
+            window.plugin.pogoDrawTools.optImportGJ = function() {
+                L.FileListLoader.loadFiles({accept:'application/geo+json'}).on('load',function (e) {
+                    const extension = e.file.name.split('.')[1];
+                    if(extension == 'geojson') {
+                        try {
+                            let data = prepareGeoJsonFile(JSON.parse(e.reader.result));
+
+                            if (!window.plugin.drawTools.merge.status) {
+                                window.plugin.drawTools.drawnItems.clearLayers();
+                            }
+                            window.plugin.drawTools.import(data);
+                            console.log('Pogo Draw Tools: '+(window.plugin.drawTools.merge.status?'':'reset and ')+'imported drawn items');
+                            window.plugin.pogoDrawTools.optAlert('Import Successful.');
+
+                            // to write back the data to localStorage
+                            window.plugin.drawTools.save();
+                        } catch(e) {
+                            console.warn('Pogo Draw Tools: failed to import data: ' + e);
+                            window.plugin.pogoDrawTools.optAlert('<span style="color: #f88">Import failed</span>');
+                        }
+
+                    } else {
+                        window.plugin.pogoDrawTools.optAlert('<span style="color: #f88">Invalid extension. Only files with .geojson extension are allowed</span>');
+                    }
+                });
+            }
+
+            /**
+             * Add Styles and Pogo Draw Tools Opt
+             */
+            const loadElements = function(){
+                // Create Pogo Draw Tools Menu Options
+                $('#toolbox').append('<a onclick="window.plugin.pogoDrawTools.manualOpt();return false;" title="Pogo Draw Tools Options">Pogo DrawTools Opt</a>');
+
+                // Css Styles
                 $('<style>').html(`
                     .leaflet-edit-marker-selected {
                         border-color: transparent;
                         background: none;
+                    }
+                    .pogoDrawToolsSetbox > a {
+                        display:block;
+                        color:#ffce00;
+                        border:1px solid #ffce00;
+                        padding:3px 0; margin:10px auto;
+                        width:80%;
+                        text-align:center;
+                        background:rgba(8,48,78,.9);
                     }
                 `).appendTo('head');
             }
@@ -233,7 +411,7 @@
             }
 
             const setup = function () {
-                loadStyles();
+                loadElements();
                 boot();
             }
 
