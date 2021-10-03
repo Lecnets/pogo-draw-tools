@@ -6,7 +6,7 @@
 // @updateURL    https://raw.githubusercontent.com/Lecnets/pogo-draw-tools/master/pogo-draw-tools.meta.js
 // @downloadURL  https://raw.githubusercontent.com/Lecnets/pogo-draw-tools/master/pogo-draw-tools.user.js
 // @homepageURL  https://github.com/Lecnets/pogo-draw-tools
-// @version      0.2.2
+// @version      0.2.3
 // @description  Based on Draw Tools ITC-CE Plugin, but adapted for Pogo
 // @author       Lecnets
 // @match        https://intel.ingress.com/*
@@ -272,7 +272,7 @@
                 if(properties.leisure !== undefined && nestTags.confirmed.leisure.includes(properties.leisure) || properties.landuse !== undefined && nestTags.confirmed.landuse.includes(properties.landuse) || properties.natural !== undefined && nestTags.confirmed.natural.includes(properties.natural)) {
                     // return color green, if current polygon is confirmed nest
                     return 'green';
-                } else if(properties.leisure !== undefined && nestTags.unconfirmed.leisure.includes(properties.leisure) || properties.landuse !== undefined && nestTags.unconfirmed.landuse.includes(properties.landuse) || properties.natural !== undefined && nestTags.unconfirmed.natural.includes(properties.natural)) {
+                } else if(properties.leisure !== undefined && nestTags.unconfirmed.leisure.includes(properties.leisure) || properties.natural !== undefined && nestTags.unconfirmed.natural.includes(properties.natural)) {
                     // return color gray, if current polygon is unconfirmed nest
                     return 'gray';
                 }
