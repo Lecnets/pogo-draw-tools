@@ -3,6 +3,7 @@
 // @name         Pogo Draw Tools Extension
 // @category     Draw
 // @namespace    https://github.com/Lecnets/pogo-draw-tools
+// @updateURL    https://raw.githubusercontent.com/Lecnets/pogo-draw-tools/master/pogo-draw-tools.meta.js
 // @downloadURL  https://raw.githubusercontent.com/Lecnets/pogo-draw-tools/master/pogo-draw-tools.user.js
 // @homepageURL  https://github.com/Lecnets/pogo-draw-tools
 // @version      0.2.2
