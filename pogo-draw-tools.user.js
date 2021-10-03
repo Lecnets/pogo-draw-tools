@@ -32,7 +32,7 @@
         let onDTLoaded = (callback, interval = 250, maxWaitDuration = 10000) => {
             const pluginInterval = setInterval(() => {
                 // Do not load code, if Draw Tools Plugin isn't loaded
-                if(window.plugin.drawTools === undefined && window.plugin.drawTools.boot === undefined) return;
+                if(window.plugin.drawTools === undefined || window.plugin.drawTools.boot === undefined) return;
                 // If Object does exist, clear the interval, and run the callback function.
                 clearInterval(pluginInterval)
                 callback()
