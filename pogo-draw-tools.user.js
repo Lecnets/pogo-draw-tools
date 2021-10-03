@@ -262,7 +262,7 @@
             }
 
             window.plugin.pogoDrawTools.optAlert = function(message) {
-                $('.ui-dialog-pogoDrawToolsSet .ui-dialog-buttonset').prepend('<p class="pogoDrawTools-alert" style="float:left;margin-top:4px;">'+message+'</p>');
+                $('.ui-dialog-pogoDrawToolsSet .ui-dialog-buttonset').prepend('<p class="pogoDrawTools-alert" style="float:left;margin-top:4px;text-align:center;">'+message+'</p>');
                 $('.pogoDrawTools-alert').delay(2500).fadeOut();
             }
 
@@ -336,7 +336,7 @@
              * Load GeoJson data into map
              */
             window.plugin.pogoDrawTools.optImportGJ = function() {
-                L.FileListLoader.loadFiles({accept:'application/geo+json'}).on('load',function (e) {
+                L.FileListLoader.loadFiles().on('load',function (e) {
                     const extension = e.file.name.split('.')[1];
                     if(extension == 'geojson') {
                         try {
