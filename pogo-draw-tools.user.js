@@ -66,7 +66,7 @@
             let settings = defaultSettings;
 
             /**
-             * Last OSM Update: 2019-01-22
+             * OSM nests/ex tags: https://thesilphroad.com/science/everything-wanted-know-july-2021-map-update
              */
             const nestTags = {
                 confirmed: {
@@ -83,26 +83,24 @@
                         'meadow',
                         'grass',
                         'greenfield',
-                        'farmyard'
+                        'farmyard',
+                        'farmland',
+                        'orchard',
+                        'vineyard'
                     ],
                     natural: [
                         'scrub',
                         'heath',
-                        'grassland'
+                        'grassland',
+                        'moor'
                     ]
                 },
                 unconfirmed: {
                     leisure: [
                         'nature_reserve'
                     ],
-                    landuse: [
-                        'farmland',
-                        'orchard',
-                        'vineyard'
-                    ],
                     natural: [
-                        'plateau',
-                        'moor'
+                        'plateau'
                     ]
                 }
             };
@@ -271,8 +269,8 @@
              */
             function getColorByTag(properties){
                 if(properties.leisure !== undefined && nestTags.confirmed.leisure.includes(properties.leisure) || properties.landuse !== undefined && nestTags.confirmed.landuse.includes(properties.landuse) || properties.natural !== undefined && nestTags.confirmed.natural.includes(properties.natural)) {
-                    // return color blue, if current polygon is confirmed nest
-                    return 'blue';
+                    // return color green, if current polygon is confirmed nest
+                    return 'green';
                 } else if(properties.leisure !== undefined && nestTags.unconfirmed.leisure.includes(properties.leisure) || properties.landuse !== undefined && nestTags.unconfirmed.landuse.includes(properties.landuse) || properties.natural !== undefined && nestTags.unconfirmed.natural.includes(properties.natural)) {
                     // return color gray, if current polygon is unconfirmed nest
                     return 'gray';
