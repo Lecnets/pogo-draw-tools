@@ -45,6 +45,9 @@
 
         // Run Pogo Draw Tools only when Draw Tools has finished
         onDTLoaded(() => {
+            // Version check
+            let oldVersion = false;
+
             // Leaflet layers
             let regionNearbyLayer;
             let nearbyLayerGroup;
@@ -240,16 +243,24 @@
              * Load Pogo Draw Tools menu options
              */
             window.plugin.pogoDrawTools.manualOpt = function(){
+                let mergeChecker = '';
                 let mergeStatusCheck = '';
-                if(!window.plugin.drawTools.merge.status){
-                  mergeStatusCheck = 'checked';
+
+                // Check if it's the new version of draw tools
+                if(window.plugin.drawTools.merge) {
+                    if(!window.plugin.drawTools.merge.status){
+                        mergeStatusCheck = 'checked';
+                    }
+                    mergeChecker = '<center><label><input type="checkbox" '+mergeStatusCheck+' name="merge" '
+                                 + 'onchange="window.plugin.drawTools.merge.toggle();return false;" />Reset draws before import</label></center>';
+                } else {
+                    oldVersion = true;
                 }
 
                 // Prepare Menu Options
                 const html = '<div class="pogoDrawToolsSetbox">'
                            + '<a onclick="window.plugin.pogoDrawTools.optImportGJ();return false;" tabindex="0">Import GeoJson Items</a>'
-                           + '<center><label><input type="checkbox" '+mergeStatusCheck+' name="merge" '
-                           + 'onchange="window.plugin.drawTools.merge.toggle();return false;" />Reset draws before import</label></center>'
+                           + mergeChecker
                            + '</div>';
 
                 dialog({
@@ -331,34 +342,57 @@
                 return drawData;
             }
 
+            function loadImportFile(e) {
+                const extension = e.file.name.split('.')[1];
+                if(extension == 'geojson') {
+                    try {
+                        let data = prepareGeoJsonFile(JSON.parse(e.reader.result));
+                        let importText = '';
+
+                        if (oldVersion || !window.plugin.drawTools.merge.status) {
+                            window.plugin.drawTools.drawnItems.clearLayers();
+                            importText = 'Pogo Draw Tools: reset and imported drawn items';
+                        } else {
+                            importText = 'Pogo Draw Tools: imported drawn items';
+                        }
+                        window.plugin.drawTools.import(data);
+                        console.log(importText);
+                        window.plugin.pogoDrawTools.optAlert('Import Successful.');
+
+                        // to write back the data to localStorage
+                        window.plugin.drawTools.save();
+                    } catch(e) {
+                        console.warn('Pogo Draw Tools: failed to import data: ' + e);
+                        window.plugin.pogoDrawTools.optAlert('<span style="color: #f88">Import failed</span>');
+                    }
+
+                } else {
+                    window.plugin.pogoDrawTools.optAlert('<span style="color: #f88">Invalid extension. Only files with .geojson extension are allowed</span>');
+                }
+            }
+
+
             /**
              * Load GeoJson data into map
              */
             window.plugin.pogoDrawTools.optImportGJ = function() {
-                L.FileListLoader.loadFiles().on('load',function (e) {
-                    const extension = e.file.name.split('.')[1];
-                    if(extension == 'geojson') {
-                        try {
-                            let data = prepareGeoJsonFile(JSON.parse(e.reader.result));
-
-                            if (!window.plugin.drawTools.merge.status) {
-                                window.plugin.drawTools.drawnItems.clearLayers();
+                if(!oldVersion) {
+                    L.FileListLoader.loadFiles().on('load',function (e) {
+                        loadImportFile(e);
+                    });
+                } else {
+                    if (window.requestFile === undefined) return;
+                    window.requestFile(function(filename, content) {
+                        loadImportFile({
+                            file: {
+                                name: filename
+                            },
+                            reader: {
+                                result: content
                             }
-                            window.plugin.drawTools.import(data);
-                            console.log('Pogo Draw Tools: '+(window.plugin.drawTools.merge.status?'':'reset and ')+'imported drawn items');
-                            window.plugin.pogoDrawTools.optAlert('Import Successful.');
-
-                            // to write back the data to localStorage
-                            window.plugin.drawTools.save();
-                        } catch(e) {
-                            console.warn('Pogo Draw Tools: failed to import data: ' + e);
-                            window.plugin.pogoDrawTools.optAlert('<span style="color: #f88">Import failed</span>');
-                        }
-
-                    } else {
-                        window.plugin.pogoDrawTools.optAlert('<span style="color: #f88">Invalid extension. Only files with .geojson extension are allowed</span>');
-                    }
-                });
+                        });
+                    });
+                }
             }
 
             /**
