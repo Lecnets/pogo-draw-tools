@@ -6,7 +6,7 @@
 // @updateURL    https://raw.githubusercontent.com/Lecnets/pogo-draw-tools/master/pogo-draw-tools.meta.js
 // @downloadURL  https://raw.githubusercontent.com/Lecnets/pogo-draw-tools/master/pogo-draw-tools.user.js
 // @homepageURL  https://github.com/Lecnets/pogo-draw-tools
-// @version      0.2.3
+// @version      0.2.4
 // @description  Based on Draw Tools ITC-CE Plugin, but adapted for Pogo
 // @author       Lecnets
 // @match        https://intel.ingress.com/*
